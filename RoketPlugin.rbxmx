@@ -1,0 +1,370 @@
+<roblox xmlns:xmime="http://www.w3.org/2005/05/xmlmime" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.roblox.com/roblox.xsd" version="4">
+	<External>null</External>
+	<External>nil</External>
+	<Item class="Script" referent="RBXEEB76E835B2F43FBAC6032F112BD9CF3">
+		<Properties>
+			<BinaryString name="AttributesSerialize"></BinaryString>
+			<SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
+			<bool name="DefinesCapabilities">false</bool>
+			<bool name="Disabled">false</bool>
+			<Content name="LinkedSource"><null></null></Content>
+			<string name="Name">RoketPlugin</string>
+			<token name="RunContext">0</token>
+			<string name="ScriptGuid">{E5D6DC7C-0833-498B-930B-5B406AD763A5}</string>
+			<ProtectedString name="Source"><![CDATA[--!strict
+
+local RoketBootstraper = require(script.RoketBootstraper)
+
+local toolbar = plugin:CreateToolbar("Roket")
+local button = toolbar:CreateButton("Split scripts", "Split scripts", "rbxassetid://4458901886")
+
+button.Click:Connect(function()
+	print("Splitting code...")
+	RoketBootstraper.Bootstrap()
+	print("Splitted")
+end)
+
+button.ClickableWhenViewportHidden = true]]></ProtectedString>
+			<int64 name="SourceAssetId">-1</int64>
+			<BinaryString name="Tags"></BinaryString>
+		</Properties>
+		<Item class="PackageLink" referent="RBXBEECF7ED1E1B4C2485697ED80FA1867D">
+			<Properties>
+				<BinaryString name="AttributesSerialize"></BinaryString>
+				<bool name="AutoUpdate">false</bool>
+				<SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
+				<string name="DefaultName"></string>
+				<bool name="DefinesCapabilities">false</bool>
+				<int name="ModifiedState">1</int>
+				<string name="Name">PackageLink</string>
+				<Content name="PackageIdSerialize"><url>rbxassetid://81841370337428</url></Content>
+				<BinaryString name="SerializedDefaultAttributes"></BinaryString>
+				<int64 name="SourceAssetId">-1</int64>
+				<BinaryString name="Tags"></BinaryString>
+				<int64 name="VersionIdSerialize">4</int64>
+			</Properties>
+		</Item>
+		<Item class="ModuleScript" referent="RBX7B55C93D1B064EDB94240C6939DBE1D3">
+			<Properties>
+				<BinaryString name="AttributesSerialize"></BinaryString>
+				<SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
+				<bool name="DefinesCapabilities">false</bool>
+				<Content name="LinkedSource"><null></null></Content>
+				<string name="Name">RoketBootstraper</string>
+				<string name="ScriptGuid">{6520C968-D50D-4D03-B94A-51DB57877E44}</string>
+				<ProtectedString name="Source"><![CDATA[--!strict
+
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local ServerScriptService = game:GetService("ServerScriptService")
+local ServerStorage = game:GetService("ServerStorage")
+local StarterPlayer = game:GetService("StarterPlayer")
+
+type Scope = "shared" | "client" | "server"
+type ScopeSources = {client: string; server: string}
+
+local function ensureEmptyFolder(parent: Instance, name: string): Folder
+	local folder = parent:FindFirstChild(name)
+	if folder then
+		assert(folder:IsA("Folder"))
+		folder:ClearAllChildren()
+		return folder
+	else
+		local newFolder = Instance.new("Folder")
+		newFolder.Name = name
+		newFolder.Parent = parent
+		return newFolder
+	end
+end
+
+local function insertModuleScript(parent: Instance, name: string, source: string)
+	if #source == 0 then return end
+	assert(not parent:FindFirstChild(name))
+	local newScript: ModuleScript = Instance.new("ModuleScript")
+	newScript.Name = name
+	newScript.Parent = parent
+	newScript.Source = source
+end
+
+local function getSourceLineScope(line: string): Scope?
+	local function matches(directive: string): boolean
+		return line:match("^%s*--%s*#" .. directive) ~= nil
+	end
+	if matches('server') then return 'server' end
+	if matches('client') then return 'client' end
+	if matches('end')    then return 'shared' end
+	return nil
+end
+
+local function splitSource(source: string): ScopeSources
+	local sources: ScopeSources = {
+		client = "",
+		server = "",
+	}
+	local scope: Scope = "shared"
+	for _,line in source:split('\n') do
+		local newScope: Scope? = getSourceLineScope(line)
+		if newScope then
+			scope = newScope
+		elseif scope == 'shared' then
+			sources.client ..= line .. '\n'
+			sources.server ..= line .. '\n'
+		else
+			sources[scope] ..= line .. '\n'
+		end
+	end
+	return sources
+end
+
+--
+-- Public
+--
+
+local RoketBootstraper = {}
+
+function RoketBootstraper.Bootstrap()
+	local packagesFolder = ensureEmptyFolder(ReplicatedStorage, "Packages")
+	script.Roket:Clone().Parent = packagesFolder
+	
+	local serverFolder = ensureEmptyFolder(ServerScriptService, "__Roket")
+	local serverScriptsFolder = ensureEmptyFolder(serverFolder, "Scripts")
+	do
+		local serverRuntime = script.RoketServerRuntime:Clone()
+		serverRuntime.Parent = serverFolder
+		serverRuntime.Enabled = true
+	end
+	
+	local clientFolder = ensureEmptyFolder(ReplicatedStorage, "__Roket")
+	local clientScriptsFolder = ensureEmptyFolder(clientFolder, "Scripts")
+	ensureEmptyFolder(clientFolder, "Events")
+	do
+		local clientRuntime = script.RoketClientRuntime:Clone()
+		clientRuntime.Parent = ensureEmptyFolder(StarterPlayer.StarterPlayerScripts, "__Roket")
+		clientRuntime.Enabled = true
+	end
+	
+	for _,child in ServerStorage.RoketScripts:GetChildren() do
+		if child:IsA("ModuleScript") then
+			local sources = splitSource(child.Source)
+			insertModuleScript(serverScriptsFolder, child.Name, sources.server)
+			insertModuleScript(clientScriptsFolder, child.Name, sources.client)
+		end
+	end
+end
+
+return RoketBootstraper]]></ProtectedString>
+				<int64 name="SourceAssetId">-1</int64>
+				<BinaryString name="Tags"></BinaryString>
+			</Properties>
+			<Item class="Script" referent="RBX43524C57A0984E4A9B4CF9D3A39BDAF3">
+				<Properties>
+					<BinaryString name="AttributesSerialize"></BinaryString>
+					<SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
+					<bool name="DefinesCapabilities">false</bool>
+					<bool name="Disabled">true</bool>
+					<Content name="LinkedSource"><null></null></Content>
+					<string name="Name">RoketServerRuntime</string>
+					<token name="RunContext">0</token>
+					<string name="ScriptGuid">{774FA30B-7144-4BA5-988C-719F28E7696C}</string>
+					<ProtectedString name="Source"><![CDATA[--!strict
+
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local ServerScriptService = game:GetService("ServerScriptService")
+local Roket = require(ReplicatedStorage:WaitForChild("Packages"):WaitForChild("Roket"))
+Roket.Start(ServerScriptService:WaitForChild("__Roket"):WaitForChild("Scripts"))]]></ProtectedString>
+					<int64 name="SourceAssetId">-1</int64>
+					<BinaryString name="Tags"></BinaryString>
+				</Properties>
+			</Item>
+			<Item class="LocalScript" referent="RBX065D10FA45F84A9980D4481F9004F99A">
+				<Properties>
+					<BinaryString name="AttributesSerialize"></BinaryString>
+					<SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
+					<bool name="DefinesCapabilities">false</bool>
+					<bool name="Disabled">true</bool>
+					<Content name="LinkedSource"><null></null></Content>
+					<string name="Name">RoketClientRuntime</string>
+					<token name="RunContext">0</token>
+					<string name="ScriptGuid">{828A824B-B630-4487-B191-F006D2613945}</string>
+					<ProtectedString name="Source"><![CDATA[--!strict
+
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Roket = require(ReplicatedStorage:WaitForChild("Packages"):WaitForChild("Roket"))
+Roket.Start(ReplicatedStorage:WaitForChild("__Roket"):WaitForChild("Scripts"))]]></ProtectedString>
+					<int64 name="SourceAssetId">-1</int64>
+					<BinaryString name="Tags"></BinaryString>
+				</Properties>
+			</Item>
+			<Item class="ModuleScript" referent="RBX9E76F9EC30F240BB968FD0D7E907542F">
+				<Properties>
+					<BinaryString name="AttributesSerialize"></BinaryString>
+					<SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
+					<bool name="DefinesCapabilities">false</bool>
+					<Content name="LinkedSource"><null></null></Content>
+					<string name="Name">Roket</string>
+					<string name="ScriptGuid">{359AC1C2-AD1D-45F0-B31E-7D5651F573E4}</string>
+					<ProtectedString name="Source"><![CDATA[--!strict
+
+local Roket = {}
+
+Roket.Disposer = require(script.Disposer)
+Roket.NetEvent = require(script.NetEvent)
+
+function Roket.Start(moduleScriptsParent: Instance)
+	for _,child in moduleScriptsParent:GetChildren() do
+		if child:IsA("ModuleScript") then
+			local module = require(child)
+			if module.RoketStart and not child:GetAttribute("__RoketModuleStarted") then
+				child:SetAttribute("__RoketModuleStarted", true)
+				module.RoketStart()
+			end
+		end
+	end
+end
+
+return Roket]]></ProtectedString>
+					<int64 name="SourceAssetId">-1</int64>
+					<BinaryString name="Tags"></BinaryString>
+				</Properties>
+				<Item class="ModuleScript" referent="RBXB01E2A1EA6C74249AC6E911815529F4E">
+					<Properties>
+						<BinaryString name="AttributesSerialize"></BinaryString>
+						<SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
+						<bool name="DefinesCapabilities">false</bool>
+						<Content name="LinkedSource"><null></null></Content>
+						<string name="Name">NetEvent</string>
+						<string name="ScriptGuid">{4395543B-B819-4901-837D-1B3DD14F797D}</string>
+						<ProtectedString name="Source"><![CDATA[--!strict
+--Network Event
+
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
+
+local NetEvent = {}
+NetEvent.__index = NetEvent
+
+function NetEvent.Load(id: string)
+	local netEvent = setmetatable({}, NetEvent)
+	netEvent.id = id
+
+	local remoteEvents = ReplicatedStorage.__Roket.Events
+	if RunService:IsServer() then
+		local remoteEvent = remoteEvents:FindFirstChild(id)
+		if not remoteEvent then
+			remoteEvent = Instance.new("RemoteEvent")
+			remoteEvent.Name = id
+			remoteEvent.Parent = remoteEvents
+		end
+		netEvent.remoteEvent = remoteEvent
+	else
+		netEvent.remoteEvent = remoteEvents:WaitForChild(id)
+	end
+
+	return netEvent
+end
+
+function NetEvent:Fire(...: {any}): ()
+	if RunService:IsServer() then
+		local arg1 = ({...})[1]
+		if typeof(arg1) == "Instance" and arg1:IsA('Player') then
+			self.remoteEvent:FireClient(...)
+		else
+			self.remoteEvent:FireAllClients(...)
+		end
+	else
+		self.remoteEvent:FireServer(...)
+	end
+end
+
+function NetEvent:Listen(listener: (...any) -> ()): ()
+	if RunService:IsServer() then
+		return self.remoteEvent.OnServerEvent:Connect(listener)
+	else
+		return self.remoteEvent.OnClientEvent:Connect(listener)
+	end
+end
+
+return NetEvent]]></ProtectedString>
+						<int64 name="SourceAssetId">-1</int64>
+						<BinaryString name="Tags"></BinaryString>
+					</Properties>
+				</Item>
+				<Item class="ModuleScript" referent="RBX32AA90C9D6EB4EA7A152124421F521E9">
+					<Properties>
+						<BinaryString name="AttributesSerialize"></BinaryString>
+						<SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
+						<bool name="DefinesCapabilities">false</bool>
+						<Content name="LinkedSource"><null></null></Content>
+						<string name="Name">Disposer</string>
+						<string name="ScriptGuid">{88829C5D-7F90-41C7-85AA-4E2EA7566A97}</string>
+						<ProtectedString name="Source"><![CDATA[--!strict
+
+local Disposer = {}
+Disposer.__index = Disposer
+
+function Disposer.New()
+	local disposer = setmetatable({}, Disposer)
+	
+	disposer.destructors = {}
+	
+	return disposer
+end
+
+function Disposer:Bind(destructor: any): ()
+	table.insert(self.destructors, destructor)
+end
+
+function Disposer:Dispose()
+	for _,destructor in self.destructors do
+		if typeof(destructor) == 'RBXScriptConnection' then
+			destructor:Disconnect()
+		else
+			destructor()
+		end
+	end
+	self.destructors = {}
+end
+
+return Disposer]]></ProtectedString>
+						<int64 name="SourceAssetId">-1</int64>
+						<BinaryString name="Tags"></BinaryString>
+					</Properties>
+				</Item>
+				<Item class="ModuleScript" referent="RBXF549934826244CE886F5E119AAECAEBF">
+					<Properties>
+						<BinaryString name="AttributesSerialize"></BinaryString>
+						<SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
+						<bool name="DefinesCapabilities">false</bool>
+						<Content name="LinkedSource"><null></null></Content>
+						<string name="Name">NetCall</string>
+						<string name="ScriptGuid">{F1502541-A85B-43D3-BB3F-E24D2FECE391}</string>
+						<ProtectedString name="Source"><![CDATA[local NetCall = {}
+
+-- TODO
+
+return NetCall]]></ProtectedString>
+						<int64 name="SourceAssetId">-1</int64>
+						<BinaryString name="Tags"></BinaryString>
+					</Properties>
+				</Item>
+				<Item class="ModuleScript" referent="RBX61B1D8798C584634B3472B6022C00B3C">
+					<Properties>
+						<BinaryString name="AttributesSerialize"></BinaryString>
+						<SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
+						<bool name="DefinesCapabilities">false</bool>
+						<Content name="LinkedSource"><null></null></Content>
+						<string name="Name">NetProperty</string>
+						<string name="ScriptGuid">{D13588CF-9A86-4939-972D-9336C9EF4923}</string>
+						<ProtectedString name="Source"><![CDATA[local NetProperty = {}
+
+-- TODO
+-- also maybe make it kinda work with a peristent database storage?
+
+return NetProperty]]></ProtectedString>
+						<int64 name="SourceAssetId">-1</int64>
+						<BinaryString name="Tags"></BinaryString>
+					</Properties>
+				</Item>
+			</Item>
+		</Item>
+	</Item>
+</roblox>
