@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunkdocs=self.webpackChunkdocs||[]).push([[27],{4410:s=>{s.exports=JSON.parse('{"sourceUrl":"https://github.com/kvbc/roket/blob/main","baseUrl":"/roket/","classOrder":[],"apiCategories":[]}')}}]);
