@@ -42,7 +42,7 @@ function PlayerProfiles.RoketStart()
 
 			if player.Parent == Players then
 				_G.Profiles[player] = profile
-				print(`Profile loaded for {player.DisplayName}!`)
+				-- print(`Profile loaded for {player.DisplayName}!`)
 			else
 				-- The player has left before the profile session started
 				profile:EndSession()

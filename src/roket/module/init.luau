@@ -1,5 +1,7 @@
 --!strict
 
+local RunService = game:GetService "RunService"
+
 local Roket = {}
 
 Roket.NetEvent = require(script.NetEvent)
@@ -10,6 +12,14 @@ Roket.Promise = require(script.ThirdParty.Promise)
 Roket.Addons = {
 	NetPropertyStore = require(script.Addons.NetPropertyStore),
 }
+
+function Roket.IsServer(): boolean
+	return RunService:IsServer()
+end
+
+function Roket.IsClient(): boolean
+	return RunService:IsClient()
+end
 
 function Roket.Start(moduleScriptsParent: Instance)
 	for _, child in moduleScriptsParent:GetChildren() do

@@ -20,9 +20,10 @@ export type LoadOptions = {
 local NetProperty = {}
 NetProperty.__index = NetProperty
 
-function NetProperty.Load(opts: LoadOptions & { id: string }, _defaultOpts: LoadOptions?): Type
+function NetProperty.Load(optsOrId: (LoadOptions & { id: string }) | string, _defaultOpts: LoadOptions?): Type
 	local self = setmetatable({}, NetProperty)
 
+	local opts: LoadOptions = type(optsOrId) == 'string' and { id = optsOrId } or optsOrId
 	local defaultOpts: LoadOptions = _defaultOpts or {}
 
 	self.id = opts.id

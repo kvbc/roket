@@ -74,8 +74,6 @@ end
 --
 
 local function Bootstrap()
-	print("Roket Bootstrapping")
-
 	local serverFolder = ensureEmptyFolder(ServerScriptService, "__Roket")
 	local serverScriptsFolder = ensureEmptyFolder(serverFolder, "Scripts")
 	do

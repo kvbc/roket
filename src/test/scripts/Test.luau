@@ -6,6 +6,10 @@ local NetPropertyStore = require(script.Parent.NetPropertyStore)
 local Test = {}
 
 function Test.RoketStart()
+	if true then
+		return
+	end
+
 	Test.Player = NetPropertyStore({
 		id = "Player",
 	})

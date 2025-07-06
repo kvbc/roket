@@ -11,8 +11,9 @@ NetFunction.__index = NetFunction
 type LoadOptions = {
 	id: string,
 }
-function NetFunction.Load(opts: LoadOptions)
+function NetFunction.Load(optsOrId: LoadOptions | string)
 	local self = setmetatable({}, NetFunction)
+	local opts: LoadOptions = type(optsOrId) == 'string' and { id = optsOrId } or optsOrId
 
 	self.id = opts.id
 
@@ -35,11 +36,29 @@ end
 function NetFunction:Define(rawFunction: (...any) -> ...any)
 	local function onInvoke(...)
 		local args = { ... }
-		local success, rets = Promise.new(function(resolve)
+		local rets = {Promise.new(function(promiseResolve)
+			-- wrapper to let `return resolve(...)` work
+			local function resolve(...)
+				promiseResolve(...)
+				return ...
+			end
+			-- insert the dummy local player to stabilize raw func def
+			if RunService:IsClient() then
+				table.insert(args, 1, Players.LocalPlayer)
+			end
 			rawFunction(resolve, table.unpack(args))
-		end):await()
-		assert(success)
-		return rets
+		end):await()}
+		local success = table.remove(rets, 1)
+		assert(success, "Promise did not resolve successfully")
+		return table.unpack(rets)
+	end
+
+	self.rawFunction = function(...)
+		-- dummy resolve
+		local function resolve(...)
+			return ...
+		end
+		return rawFunction(resolve, ...)
 	end
 
 	if RunService:IsServer() then
@@ -49,39 +68,48 @@ function NetFunction:Define(rawFunction: (...any) -> ...any)
 	end
 end
 
+function NetFunction:CallLocal(...)
+	assert(RunService:IsClient(), "This function should only be called on the client")
+	local player = game.Players.LocalPlayer
+	return self.rawFunction(player, ...)
+end
+
 function NetFunction:__call(...)
 	local args = { ... }
-	return Promise.new(function(resolve, reject)
-		local success, result = pcall(function()
-			if RunService:IsServer() then
-				local players = {}
-				local explicitPlayer = typeof(args[1]) == "Instance" and args[1]:IsA("Player") and args[1]
-				if explicitPlayer then
-					table.insert(players, args[1])
-					table.remove(args, 1) -- remove first arg (player)
-				else
-					players = Players:GetPlayers()
-				end
 
+	if RunService:IsServer() then
+		local players = {}
+		local explicitPlayer = typeof(args[1]) == "Instance" and args[1]:IsA("Player") and args[1]
+		if explicitPlayer then
+			players = { explicitPlayer }
+			table.remove(args, 1)
+		elseif args[1] == Players then
+			players = Players:GetPlayers()
+			table.remove(args, 1)
+		end
+
+		if #players > 0 then
+			return Promise.new(function(resolve)
 				local rets = {}
 				for _, player in players do
 					rets[player] = self.remoteFunction:InvokeClient(player, table.unpack(args))
 				end
-
 				if explicitPlayer then
-					return rets[explicitPlayer]
+					resolve(rets[explicitPlayer])
+				else
+					resolve(rets)
 				end
-				return rets
-			else
-				return self.remoteFunction:InvokeServer(table.unpack(args))
-			end
-		end)
-		if success then
-			resolve(result)
+			end)
 		else
-			reject(result)
+			local player = nil
+			return self.rawFunction(player, table.unpack(args))
 		end
-	end)
+	else
+		-- client
+		return Promise.new(function(resolve)
+			resolve(self.remoteFunction:InvokeServer(table.unpack(args)))
+		end)
+	end
 end
 
 return NetFunction.Load

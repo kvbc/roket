@@ -11,8 +11,9 @@ type LoadOptions = {
 	id: string,
 	unreliable: boolean?,
 }
-function NetEvent.Load(opts: LoadOptions)
+function NetEvent.Load(optsOrId: LoadOptions | string)
 	local self = setmetatable({}, NetEvent)
+	local opts: LoadOptions = type(optsOrId) == 'string' and { id = optsOrId } or optsOrId
 
 	self.id = opts.id
 
