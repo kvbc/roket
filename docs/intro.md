@@ -4,7 +4,7 @@ sidebar_position: 1
 
 # 📖 About
 
-Roblox game framework built to skyroket your developer experience!
+Roblox networking framework built to skyroket your developer experience!
 
 ## Features
 
