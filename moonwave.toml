@@ -1,0 +1,7 @@
+gitSourceBranch = "main"
+changelog = true
+classOrder = []
+
+[docusaurus]
+onBrokenLinks = "throw"
+onBrokenMarkdownLinks = "warn"
