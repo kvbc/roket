@@ -2,6 +2,6 @@
 sidebar_position: 1
 ---
 
-# Roket
+# 📖 About
 
-really cool roblox game framework
+Roblox game framework built to skyroket your developer experience! 

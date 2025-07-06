@@ -1,3 +1,4 @@
+title = "Roket"
 gitSourceBranch = "main"
 changelog = true
 classOrder = []
@@ -5,3 +6,4 @@ classOrder = []
 [docusaurus]
 onBrokenLinks = "throw"
 onBrokenMarkdownLinks = "warn"
+tagline = "Roblox game framework built to skyroket your developer experience!"
