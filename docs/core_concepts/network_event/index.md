@@ -10,6 +10,8 @@
 
 ### Rate Limiting & Flood Protection
 
+DDoS protect
+
 also includes Bandwidth Budgeting (Set per-player or global limits and receive warnings when you exceed them.)
 
 ### AOI (Area‑of‑Interest) Filtering
@@ -35,5 +37,11 @@ Inject arbitrary delay, drop rates or jitter locally so you can test how clients
 Built‑In Profiler - Track round‑trip times, bandwidth per-remote, calls per-second, etc., surfaced in an in‑game debug UI.
 
 ### Interpolation
+
+### Type Validation
+
+zod-like middleware
+
+### Batching
 
 ## API

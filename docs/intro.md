@@ -12,12 +12,14 @@ Roblox networking framework built to skyroket your developer experience!
 
 ## Philosophy
 
-...
+Composition over inheritence - as you can see with the whole middleware system and whole project structure.
 
 ## Planned Features
 
 - Delta-Compression - Send only changed fields instead of the full table/object each tick. - this should be default in NetProperty - TODO
 - Plugin API? or maybe just middlewares?
+- Queue NetEvent server call to player(s?) so that they dont miss the event
+- maybe provide support for some other libs to wrap and speed up Roket
 
 ---
 
