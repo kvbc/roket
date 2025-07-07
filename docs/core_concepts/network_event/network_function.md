@@ -1,4 +1,53 @@
-# Network Function
+# 🧩 Network Functions
+
+:::info
+Please first familiarize yourself with the workings of [Network Events](/docs/core_concepts/network_event), which Network Functions are based on.
+:::
+
+## About
+
+...
+
+## Load
+
+### Calling the function remotely over the network
+
+On the client-side, in order to call a server-sided function, simply call your loaded `NetFunction` object.
+
+```lua
+    local myFunc = Roket.NetFunction "myfunc"
+    myFunc(...)
+```
+
+In order to obtain the results of this asynchronous call, you must utilize the returned promise created by Roket.
+
+```lua
+    myFunc(...):andThen(function(...)
+        print(...)
+    end)
+```
+
+:::note
+Roket is using a Promise implementation [roblox-lua-promise](https://eryn.io/roblox-lua-promise/)
+created by [evaera](https://github.com/evaera).
+Read more on [Promises](https://en.wikipedia.org/wiki/Futures_and_promises).
+:::
+
+- For the client it means to call a server function and await its results with a promise
+- For the server it means to either call a specific client
+
+To call a function locally
+
+- On the server, call it as you would a normal function, e.g. `myFunction(...)`
+- On the client, use the `:CallLocal()` method, e.g. `myFunction:CallLocal(...)`
+
+When calling the function locally, actual return values are returned instead of a promise
+
+## Define
+
+## Call
+
+## Middleware
 
 ## Examples
 
@@ -161,3 +210,7 @@ return SharedService
 ### Multiple Files
 
 ...
+
+## API
+
+See [API](/api/NetFunction).

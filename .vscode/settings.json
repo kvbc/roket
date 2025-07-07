@@ -1,0 +1,11 @@
+{
+  "restoreTerminals.terminals": [
+    {
+      "splitTerminals": [
+        {
+          "commands": ["moonwave dev"]
+        }
+      ]
+    }
+  ]
+}
