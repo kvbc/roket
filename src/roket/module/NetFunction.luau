@@ -1,4 +1,5 @@
 --!strict
+--!optimize 2
 
 local RunService = game:GetService("RunService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -27,12 +28,11 @@ type LoadOptions = {
 
 	Read more on the [docs](/docs/core_concepts/network_event/network_function).
 
-	@param optsOrId LoadOptions | string -- options or ID
 	@return NetFunction
 ]=]
-function NetFunction.Load(optsOrId: LoadOptions | string)
+function NetFunction.Load(optionsOrId: LoadOptions | string)
 	local self = setmetatable({}, NetFunction)
-	local opts: LoadOptions = type(optsOrId) == 'string' and { id = optsOrId } or optsOrId
+	local opts: LoadOptions = type(optionsOrId) == 'string' and { id = optionsOrId } or optionsOrId
 
 	self.id = opts.id
 

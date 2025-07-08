@@ -20,6 +20,7 @@ Composition over inheritence - as you can see with the whole middleware system a
 - Plugin API? or maybe just middlewares?
 - Queue NetEvent server call to player(s?) so that they dont miss the event
 - maybe provide support for some other libs to wrap and speed up Roket
+- make services not reload everytime they are required but persist in store
 
 ---
 

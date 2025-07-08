@@ -1,8 +1,8 @@
 ---
-sidebar_position: 4
+sidebar_position: 5
 ---
 
-# 🔗 Object Groups
+# 🔗 Groups
 
 so this allows to group many objects that have id on them and just call multiple all at once
 
