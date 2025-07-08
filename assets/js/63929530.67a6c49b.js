@@ -1,1 +1,0 @@
-"use strict";(self.webpackChunkdocs=self.webpackChunkdocs||[]).push([[216],{7676:e=>{e.exports=JSON.parse('[{"type":"link","href":"/api/NetFunction","label":"\u200bNet\u200bFunction"}]')}}]);
