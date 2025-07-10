@@ -1,3 +1,4 @@
+--#ignore
 --!strict
 
 local Roket = require(game.ReplicatedStorage.Packages.Roket)

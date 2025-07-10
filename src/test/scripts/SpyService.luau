@@ -1,3 +1,4 @@
+--#ignore
 local Roket = require(game.ReplicatedStorage.Packages.Roket)
 
 local SpyService = {

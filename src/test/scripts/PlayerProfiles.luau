@@ -1,3 +1,4 @@
+--#ignore
 --#server
 
 local ProfileStore = require(game.ServerScriptService.Packages.ProfileStore)

@@ -5,8 +5,8 @@ local RunService = game:GetService "RunService"
 local Roket = {}
 
 Roket.NetEvent = require(script.NetEvent)
-Roket.NetFunction = require(script.NetFunction)
-Roket.NetProperty = require(script.NetProperty)
+-- Roket.NetFunction = require(script.NetFunction)
+-- Roket.NetProperty = require(script.NetProperty)
 Roket.Trove = require(script.ThirdParty.Trove)
 Roket.Promise = require(script.ThirdParty.Promise)
 Roket.Addons = {

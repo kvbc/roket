@@ -28,9 +28,9 @@ export type Method<TSelf, TArgs, TRes> = (TArgs & MethodArgs<TSelf>) -> TRes
 	@type MiddlewareArgs<TArgs> TArgs & { [string]: any }
 	@within Middleware
 ]=]
-export type MiddlewareArgs<TArgs> = TArgs & {
-	[string]: any
-}
+-- TODO here maybe add some kind of context for multiple middlewares to use to pass data
+--      as to not use the args for that
+export type MiddlewareArgs<TArgs> = TArgs
 export type MiddlewareArgsMethod<TSelf, TArgs> = MethodArgs<TSelf> & MiddlewareArgs<TArgs>
 
 --[=[
@@ -50,12 +50,16 @@ export type MiddlewareResultMethod<TSelf, TRes, TArgs> = TRes | {
 ]=]
 export type Middleware<TArgs, TRes> = (MiddlewareArgs<TArgs>) -> MiddlewareResult<TRes, TArgs>
 export type MiddlewareMethod<TSelf, TArgs, TRes> = (MiddlewareArgsMethod<TSelf, TArgs>) -> MiddlewareResultMethod<TSelf, TRes, TArgs>
+
+export type MiddlewaresOf<TMiddleware> = TMiddleware | {TMiddleware}
+
 --[=[
 	@type Middlewares<TArgs,TRes> Middleware<TArgs,TRes> | { Middleware<TArgs;TRes> }
 	@within Middleware
 ]=]
-export type Middlewares<TArgs, TRes> = Middleware<TArgs, TRes> | {Middleware<TArgs, TRes>}
-export type MiddlewaresMethod<TSelf, TArgs, TRes> = MiddlewareMethod<TSelf, TArgs, TRes> | {MiddlewareMethod<TSelf, TArgs, TRes>}
+export type Middlewares<TArgs, TRes> = MiddlewaresOf<Middleware<TArgs, TRes>>
+export type MiddlewaresMethod<TSelf, TArgs, TRes> = MiddlewaresOf<MiddlewareMethod<TSelf, TArgs, TRes>>
+
 
 export type MiddlewareHandler<TArgs, TRes> = (MiddlewareArgs<TArgs>) -> TRes
 export type MiddlewareHandlerMethod<TSelf, TArgs, TRes> = (MiddlewareArgsMethod<TSelf, TArgs>) -> TRes
@@ -123,7 +127,7 @@ function Middleware.Call<TArgs, TRes>(
 	middlewares: Middlewares<TArgs, TRes>,
 	args: MiddlewareArgs<TArgs>
 ): TRes
-	for _, middleware in middlewaresArray(middlewares) do
+	for _, middleware in ipairs(middlewaresArray(middlewares)) do
 		local ret = middleware(args)
 		if not ret.next then
 			return (ret :: any) :: TRes
@@ -136,14 +140,17 @@ end
 -- just for better typing really
 -- not meant to be accessed by the API, instead use MiddlewareAgent
 function Middleware.CallMethod<TSelf, TArgs, TRes>(
-	handler: MiddlewareHandlerMethod<TSelf, TArgs, TRes>,
+	self: TSelf,
+	args: MiddlewareArgs<TArgs>,
 	middlewares: MiddlewaresMethod<TSelf, TArgs, TRes>,
-	args: MiddlewareArgsMethod<TSelf, TArgs>
+	handler: MiddlewareHandlerMethod<TSelf, TArgs, TRes>
+	
 ): TRes
-	assert(args.self, "has self")
+	local args = args :: MiddlewareArgsMethod<TSelf, TArgs>
+	args.self = self
 	return Middleware.Call(
 		handler :: MiddlewareHandler<TArgs, TRes>,
-		middlewares :: Middlewares<TArgs, TRes>,
+		(middlewares :: any) :: Middlewares<TArgs, TRes>,
 		args -- TODO why no type cast required here?
 	)
 end

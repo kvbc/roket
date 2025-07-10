@@ -1,3 +1,5 @@
+--#ignore
+
 local Roket = require(game.ReplicatedStorage.Packages.Roket)
 
 local MathService = {

@@ -94,6 +94,9 @@ local function Bootstrap()
 
 	for _, child in ServerStorage.RoketScripts:GetChildren() do
 		if child:IsA("ModuleScript") then
+			if child.Source:match("^--#ignore") then
+				continue
+			end
 			local sources = splitSource(child.Source)
 			insertModuleScript(serverScriptsFolder, child.Name, sources.server)
 			insertModuleScript(clientScriptsFolder, child.Name, sources.client)
